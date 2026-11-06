@@ -1,0 +1,30 @@
+# Cross-platform environment (Windows, Linux, WSL, macOS).
+#
+#   conda env create -f environment.yml
+#   conda activate twist-segmenter
+#   pip install --no-deps -e .
+#
+# conda-forge picks a CUDA build of PyTorch automatically when an NVIDIA
+# driver is present, and a CPU build otherwise. For GPU-accelerated
+# PCA/K-means in the cluster map app on Linux/WSL2, use
+# environment-rapids.yml instead.
+name: twist-segmenter
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy=2.2
+  - scipy=1.16
+  - scikit-learn=1.8
+  - matplotlib=3.10
+  - opencv=4.12
+  - pillow
+  - av=17
+  - panel=1.8
+  - bokeh=3.8
+  - pytorch=2.9
+  - torchvision=0.24
+  - jupyterlab
+  - ipykernel
+  - ipywidgets
+  - pip

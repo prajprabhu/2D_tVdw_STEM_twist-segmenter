@@ -1,0 +1,35 @@
+# Linux / WSL2 + NVIDIA GPU only: adds RAPIDS (cuML + CuPy) so the cluster
+# map app runs PCA and K-means on the GPU. Needs an NVIDIA driver that
+# supports CUDA 12.
+#
+#   conda env create -f environment-rapids.yml
+#   conda activate twist-segmenter
+#   pip install --no-deps -e .
+#
+# On Windows (without WSL) or macOS, use environment.yml instead -- the apps
+# fall back to scikit-learn automatically.
+name: twist-segmenter
+channels:
+  - rapidsai
+  - conda-forge
+  - nvidia
+dependencies:
+  - python=3.12
+  - cuda-version=12.9
+  - cuml=25.12
+  - cupy=13.6
+  - numpy=2.2
+  - scipy=1.16
+  - scikit-learn=1.8
+  - matplotlib=3.10
+  - opencv=4.12
+  - pillow
+  - av=17
+  - panel=1.8
+  - bokeh=3.8
+  - pytorch=2.9
+  - torchvision=0.24
+  - jupyterlab
+  - ipykernel
+  - ipywidgets
+  - pip

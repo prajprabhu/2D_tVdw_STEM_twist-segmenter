@@ -1,0 +1,4 @@
+# Keep shell scripts LF (so they run on Linux/WSL even when checked out on
+# Windows) and batch files CRLF.
+*.sh text eol=lf
+*.bat text eol=crlf

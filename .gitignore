@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.venv/
+.ipynb_checkpoints/
+.DS_Store
+
+# Sample data is downloaded by examples/download_sample_data.py, never committed
+examples/data/*
+!examples/data/README.md
+examples/cache/
+
+# App outputs
+*.mp4

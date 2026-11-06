@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "twist-mapper-gpu"
+dynamic = ["version"]
+description = "Local twist-angle and phase mapping of twisted van der Waals bilayers from HAADF-STEM images and video"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Prajakta Prabhune" }]
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+# Used by the pip-only install (`pip install -e .`). Conda users install
+# these from environment.yml instead and run `pip install --no-deps -e .`.
+dependencies = [
+    "numpy>=2.0",
+    "scipy>=1.13",
+    "scikit-learn>=1.5",
+    "matplotlib>=3.9",
+    "opencv-python>=4.10",
+    "pillow>=10",
+    "av>=12",
+    "panel>=1.5",
+    "bokeh>=3.5",
+    "torch>=2.4",
+    "torchvision>=0.19,<0.25",  # torchvision.io.read_video is deprecated; pinned until replaced
+]
+
+[project.optional-dependencies]
+# GPU-accelerated PCA/K-means for the cluster map (Linux/WSL2 + NVIDIA only).
+# Without it, scikit-learn on the CPU is used automatically.
+rapids = [
+    "cupy-cuda12x>=13; sys_platform == 'linux'",
+    "cuml-cu12>=25.12; sys_platform == 'linux'",
+]
+notebooks = ["jupyterlab>=4", "ipykernel", "ipywidgets>=8"]
+
+[project.urls]
+Repository = "https://github.com/prajprabhu/2D_tVdw_STEM_twist-segmenter"
+
+[tool.setuptools]
+packages = ["twist_mapper_GPU"]
+
+[tool.setuptools.dynamic]
+version = { attr = "twist_mapper_GPU.__version__" }
