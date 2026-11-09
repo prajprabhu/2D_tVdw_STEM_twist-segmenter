@@ -7,9 +7,11 @@ build/
 .ipynb_checkpoints/
 .DS_Store
 
-# Sample data is downloaded by examples/download_sample_data.py, never committed
+# Gomb-Net sample data is downloaded by examples/download_sample_data.py, never
+# committed; the bundled demo image is the only data file tracked
 examples/data/*
 !examples/data/README.md
+!examples/data/heating_500C_frame357.png
 examples/cache/
 
 # App outputs

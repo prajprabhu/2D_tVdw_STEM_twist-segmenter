@@ -47,7 +47,7 @@ conda env create -f environment.yml        # Windows / Linux / WSL / macOS
 
 conda activate twist-segmenter
 pip install --no-deps -e .                 # makes the twist_mapper_GPU package importable
-python examples/download_sample_data.py    # fetches the sample image (0.5 MB)
+python examples/download_sample_data.py    # optional: fetches the Gomb-Net sample (0.5 MB) used by the notebooks
 ```
 
 On Windows, run these commands in the **Miniforge Prompt** (or Anaconda Prompt).
@@ -59,7 +59,7 @@ On Windows, run these commands in the **Miniforge Prompt** (or Anaconda Prompt).
 python -m venv .venv
 source .venv/bin/activate                  # Windows: .venv\Scripts\activate
 pip install -e ".[notebooks]"              # add ,rapids on Linux for GPU clustering
-python examples/download_sample_data.py
+python examples/download_sample_data.py    # optional, for the notebooks
 ```
 
 pip installs the CPU build of PyTorch by default on Windows and Linux. For a CUDA build, first install PyTorch using the command from <https://pytorch.org/get-started/locally/>.
@@ -78,9 +78,13 @@ The launchers run `panel serve <app>.py --port <port> --show`, which opens your 
 
 Neither app loads anything at startup:
 
-1. The **Source path** box is pre-filled with the sample `examples/data/moire.npz`. Click **Load** (Tile Inspector) or **Load & Recompute** (Cluster Map Inspector) to open it, or enter the path to your own file first.
-2. Choose the **Material**. This sets the expected Bragg d-spacing, which you can override in the **d-spacing** box. Check the **Pixel size**: it is read from `.npz` metadata when present, and otherwise you enter it.
-3. Set the **Tile size** and **Stride** for your magnification. The expected first-order ring radius in FFT pixels is `tile_size × pixel_size / d_spacing`. It should sit well away from the FFT center, ideally at least 10–15 px, so increase the tile size for high-magnification images.
+1. The **Source path** box is pre-filled with the bundled demo image `examples/data/heating_500C_frame357.png`, a MoS₂ HAADF-STEM frame. Click **Load** (Tile Inspector) or **Load & Recompute** (Cluster Map Inspector) to open it, or enter the path to your own file first.
+2. Choose the **Material**; the default is MoS₂. This sets the expected Bragg d-spacing, which you can override in the **d-spacing** box. Check the **Pixel size**: it is read from `.npz` metadata when present, and otherwise you enter it.
+3. Set the **Tile size** and **Stride** for your magnification (defaults: 128 and 20). The expected first-order ring radius in FFT pixels is `tile_size × pixel_size / d_spacing`. It should sit well away from the FFT center, ideally at least 10–15 px, so increase the tile size for high-magnification images.
+
+In the Cluster Map Inspector, clustering is a separate step from tiling and PCA/NMF. Under **PCs used for clustering**, choose the components (default PC1–PC4 and PC6) and the **Number of clusters** (default 5), then click **Compute clustering**. This re-runs only K-means, without recomputing the correlograms. The legend shows each cluster's dominant component and that component's dominant angle.
+
+Both apps have a **Go to frame** box next to the frame slider for jumping to a frame of a video.
 
 The Cluster Map Inspector's status line shows whether clustering is running on **RAPIDS (GPU)** or **scikit-learn (CPU)**.
 
@@ -113,7 +117,7 @@ For whole-video clustering, see `twist_mapper_GPU.dynamic_pipeline.run_dynamic_p
 
 ## Troubleshooting
 
-- **"file not found" for the sample:** run `python examples/download_sample_data.py`.
+- **"file not found" for `moire.npz`:** run `python examples/download_sample_data.py`.
 - **`ModuleNotFoundError: twist_mapper_GPU`:** run `pip install --no-deps -e .` from the repository folder, with the environment active.
 - **Port already in use:** another copy of the app is still running. Stop it, or launch on another port, e.g. `panel serve tile_inspector_app.py --port 5010 --show`.
 - **GPU not used:** check with `python -c "import torch; print(torch.cuda.is_available())"`. If it prints `False`, check your NVIDIA driver; conda-forge installs a CUDA build of PyTorch only when it detects one.
@@ -121,7 +125,9 @@ For whole-video clustering, see `twist_mapper_GPU.dynamic_pipeline.run_dynamic_p
 
 ## Sample data and citation
 
-The sample image comes from the Gomb-Net project and is downloaded from its repository, not redistributed here. If you use it, please cite:
+The demo image `examples/data/heating_500C_frame357.png` is included in this repository; see [examples/data/README.md](examples/data/README.md).
+
+The notebooks' sample image `moire.npz` comes from the Gomb-Net project and is downloaded from its repository, not redistributed here. If you use it, please cite:
 
 > A. C. Houston, S. B. Harris, H. Wang, Y.-C. Lin, D. B. Geohegan, K. Xiao, G. Duscher, "Atom Identification in Bilayer Moiré Materials with Gomb-Net," *Nano Letters* **25**(23), 9277–9284 (2025). <https://doi.org/10.1021/acs.nanolett.5c01460>
 
@@ -129,4 +135,4 @@ See [examples/data/README.md](examples/data/README.md) for details.
 
 ## License
 
-[MIT](LICENSE) © 2026 Prajakta Prabhune. The sample data is not covered by this license; it belongs to its authors.
+[MIT](LICENSE) © 2026 Prajakta Prabhune. The Gomb-Net sample data is not covered by this license; it belongs to its authors.

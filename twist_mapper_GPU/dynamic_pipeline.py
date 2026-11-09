@@ -327,6 +327,62 @@ def find_dominant_frequencies(components: np.ndarray, n_bins: int, top_k: int = 
     return results
 
 
+def compute_cluster_dominant_components(centroids, component_indices, components: np.ndarray,
+                                        n_bins: int, dominant_freqs: list = None) -> list:
+    """For every K-means cluster: which correlogram component (PC loading or
+    NMF basis vector) dominates it, and that component's dominant angular
+    periodicity from its own FFT.
+
+    The centroids live in the z-scored component-score space K-means was
+    fit in (every component scaled to unit variance), so the coordinate
+    with the largest magnitude is the component along which that cluster
+    sits furthest from the dataset mean -- the one that most distinguishes
+    it. Its dominant non-DC FFT frequency k (find_dominant_frequencies)
+    gives the angle 360/k degrees, e.g. k=6 -> 60 degrees (hexagonal
+    symmetry).
+
+    Parameters
+    ----------
+    centroids : np.ndarray or torch.Tensor (n_clusters, len(component_indices))
+        K-means centroids, z-scored -- e.g. refit_kmeans' second return.
+    component_indices : sequence of int
+        Which columns of the full component set the centroids' columns
+        correspond to (the "PCs used for clustering" subset), in order.
+    components : np.ndarray (n_components, n_bins)
+        All component vectors, e.g. DynamicPipelineResult.pca_components.
+    n_bins : int
+    dominant_freqs : list, optional
+        Precomputed find_dominant_frequencies(components, n_bins).
+
+    Returns
+    -------
+    list (length n_clusters) of dict with keys:
+        'component'    -- index into `components` (0-based)
+        'score'        -- the centroid's z-scored value on that component
+                          (sign says which side of the mean the cluster is)
+        'cycles'       -- dominant cycles per 360-degree revolution
+        'angle_deg'    -- 360 / cycles
+    """
+    if torch.is_tensor(centroids):
+        centroids = centroids.detach().cpu().numpy()
+    centroids = np.asarray(centroids)
+    component_indices = list(component_indices)
+    if centroids.shape[1] != len(component_indices):
+        raise ValueError(f"centroids have {centroids.shape[1]} columns but "
+                         f"{len(component_indices)} component_indices were given")
+    if dominant_freqs is None:
+        dominant_freqs = find_dominant_frequencies(components, n_bins, top_k=1)
+
+    results = []
+    for centroid in centroids:
+        j = int(np.argmax(np.abs(centroid)))
+        comp = component_indices[j]
+        cycles, _, angle_deg = dominant_freqs[comp][0]
+        results.append({'component': comp, 'score': float(centroid[j]),
+                        'cycles': cycles, 'angle_deg': angle_deg})
+    return results
+
+
 def plot_pc_spectra(components: np.ndarray, n_bins: int, dominant_freqs: list = None,
                     explained_variance_ratio: np.ndarray = None, min_cycles_shown: int = 30,
                     component_label: str = 'PC'):

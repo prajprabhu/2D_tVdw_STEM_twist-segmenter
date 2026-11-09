@@ -1,6 +1,14 @@
 # Sample data
 
-The apps and example notebooks use `moire.npz`, a 512 × 512 HAADF-STEM image of a bilayer moiré material.
+## Demo image (included)
+
+`heating_500C_frame357.png` is frame 357 of an in-situ HAADF-STEM heating video of MoS₂ at 500 °C, saved as an 8-bit grayscale PNG (1280 × 720; the apps crop the black margins to 720 × 720). Both apps open with it in the **Source path** box.
+
+A PNG carries no calibration, so enter the **Pixel size** yourself; the apps start at 0.25 Å/pixel.
+
+## Gomb-Net sample (downloaded)
+
+The example notebooks use `moire.npz`, a 512 × 512 HAADF-STEM image of a bilayer moiré material.
 
 This file is **not included in this repository**. It belongs to the authors of Gomb-Net and is hosted in their repository. Download it with:
 
@@ -8,9 +16,9 @@ This file is **not included in this repository**. It belongs to the authors of G
 python examples/download_sample_data.py
 ```
 
-The script saves the file to `examples/data/moire.npz`, where both apps and the notebooks expect it.
+The script saves the file to `examples/data/moire.npz`, where the notebooks expect it. You can also open it in either app.
 
-## Source and citation
+### Source and citation
 
 - **Repository:** <https://github.com/AustinHouston/Gomb-Net> (file `Moire.npz`)
 - **Paper:** A. C. Houston, S. B. Harris, H. Wang, Y.-C. Lin, D. B. Geohegan, K. Xiao, G. Duscher, "Atom Identification in Bilayer Moiré Materials with Gomb-Net," *Nano Letters* **25**(23), 9277–9284 (2025). <https://doi.org/10.1021/acs.nanolett.5c01460>
@@ -18,7 +26,7 @@ The script saves the file to `examples/data/moire.npz`, where both apps and the 
 
 If you use this data, please cite the paper above.
 
-## File format
+### File format
 
 | Key | Contents |
 |---|---|

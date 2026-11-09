@@ -5,9 +5,10 @@ Run with (or use run_tile_inspector_app.sh / .bat):
     panel serve tile_inspector_app.py --port 5009 --show
 
 Nothing is loaded at startup. The "Source path" box is pre-filled with
-the bundled sample (examples/data/moire.npz -- fetch it first with
-`python examples/download_sample_data.py`); click "Load" to load it, or
-enter any other path.
+the demo image (examples/data/heating_500C_frame357.png, frame 357 of a
+500 C heating video); click "Load" to load it, or enter any other path
+(e.g. the Gomb-Net sample examples/data/moire.npz, fetched by
+`python examples/download_sample_data.py`).
 
 Enter a video, image, or .npz array-stack path in the "Source path" box
 and click "Load" to switch what's loaded — a video decodes to its normal
@@ -95,10 +96,15 @@ pn.extension()
 # starts empty until the user clicks "Load".
 SAMPLE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples', 'data', 'moire.npz')
 SAMPLE_HINT = "Run `python examples/download_sample_data.py` to fetch the sample data."
+# What the "Source path" box is pre-filled with: frame 357 of the 500 C
+# heating video, saved as a grayscale PNG.
+DEMO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'examples', 'data',
+                         'heating_500C_frame357.png')
+DEFAULT_SOURCE_PATH = DEMO_PATH
 DEFAULT_TILE_SIZE = 128
-DEFAULT_STRIDE = 32
+DEFAULT_STRIDE = 20
 PIXEL_SIZE_ANG = 0.25  # fallback default when a source has no pixel-size metadata
-DEFAULT_MATERIAL = 'WSSe'
+DEFAULT_MATERIAL = 'MoS2'
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -246,7 +252,7 @@ mpl_pane = pn.pane.Matplotlib(tight=True, dpi=100, sizing_mode='stretch_width')
 coord_label = pn.pane.Markdown("")
 status_label = pn.pane.Markdown("")
 
-path_input = pn.widgets.TextInput(name='Source path (video, image, or .npz)', value=SAMPLE_PATH, width=440)
+path_input = pn.widgets.TextInput(name='Source path (video, image, or .npz)', value=DEFAULT_SOURCE_PATH, width=440)
 material_selector = pn.widgets.Select(name='Material', options=sorted(MATERIALS.keys()),
                                       value=DEFAULT_MATERIAL, width=140)
 d_spacing_input = pn.widgets.FloatInput(
@@ -259,11 +265,15 @@ pixel_size_input = pn.widgets.FloatInput(
 )
 load_button = pn.widgets.Button(name='Load', button_type='primary', width=80)
 load_status = pn.pane.Markdown(
-    "No source loaded yet. Click **Load** to open the sample shown above, or enter another path."
-    + ("" if os.path.isfile(SAMPLE_PATH) else f" (Sample not downloaded yet. {SAMPLE_HINT})")
+    "No source loaded yet. Click **Load** to open the file shown above, or enter another path."
+    + ("" if os.path.isfile(DEFAULT_SOURCE_PATH) else
+       (f" (Sample not downloaded yet. {SAMPLE_HINT})" if DEFAULT_SOURCE_PATH == SAMPLE_PATH
+        else " (That file doesn't exist on this machine.)"))
 )
 
 frame_slider = pn.widgets.IntSlider(name='Frame', start=0, end=1, value=0, disabled=True)
+frame_input = pn.widgets.IntInput(name='Go to frame', value=0, start=0, end=0, width=110,
+                                  disabled=True)
 panel_selector = pn.widgets.RadioButtonGroup(
     options={
         '1 · Tile / Hann / FFT': '1',
@@ -418,11 +428,25 @@ def on_frame_change(event):
     if tiled is None:
         return
     state['frame'] = event.new
+    frame_input.value = event.new  # no-op (no event) when it already matches
     img_source.data = dict(image=[get_frame_np(state['frame'])[::-1, :]])
     render_panel()
 
 
+def on_frame_input_change(event):
+    """Typed frame number -> clamp to the loaded range and move the slider,
+    which then redraws via on_frame_change."""
+    if tiled is None:
+        return
+    clamped = min(max(int(event.new), 0), N_FRAMES - 1)
+    if clamped != event.new:
+        frame_input.value = clamped
+        return
+    frame_slider.value = clamped
+
+
 frame_slider.param.watch(on_frame_change, 'value')
+frame_input.param.watch(on_frame_input_change, 'value')
 
 
 def on_panel_change(event):
@@ -479,6 +503,7 @@ def on_global_clahe_change(event):
         handle_source.on_change('data', on_handle_change)
         bokeh_pane.object = frame_fig
         frame_slider.end = max(1, N_FRAMES - 1)
+        frame_input.end = max(0, N_FRAMES - 1)
     else:
         img_source.data = dict(image=[get_frame_np(state['frame'])[::-1, :]])
 
@@ -632,6 +657,9 @@ def load_source(path):
         frame_slider.end = max(1, N_FRAMES - 1)
         frame_slider.value = state['frame']
         frame_slider.disabled = N_FRAMES <= 1
+        frame_input.end = max(0, N_FRAMES - 1)
+        frame_input.value = state['frame']
+        frame_input.disabled = N_FRAMES <= 1
     finally:
         _loading['flag'] = False
 
@@ -660,7 +688,7 @@ app = pn.Column(
     pn.Row(path_input, material_selector, d_spacing_input, pixel_size_input, load_button),
     load_status,
     pn.Row(
-        pn.Column(bokeh_pane, frame_slider, pn.Row(tile_size_input, stride_input), status_label),
+        pn.Column(bokeh_pane, pn.Row(frame_slider, frame_input), pn.Row(tile_size_input, stride_input), status_label),
         pn.Column(panel_selector, subtract_mean_toggle, clahe_toggle, global_clahe_toggle,
                  mpl_pane, coord_label),
     ),
